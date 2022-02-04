@@ -20,6 +20,9 @@ import java.util.Optional;
 
 import static com.mob.casestudy.digitalbanking.errorcodes.CustomisedErrorCodesAndDescription.*;
 
+
+//csi
+//si
 @Service
 public class SecurityImagesService {
 
@@ -28,14 +31,16 @@ public class SecurityImagesService {
     private final SecurityImageRepository securityImageRepository;
     private final EntityManager entityManager;
     private final CustomerDetailValidation customerDetailValidation;
+    private final CustomerService customerService;
 
     @Autowired
-    public SecurityImagesService(CustomerRepository customerRepository, CustomerSecurityImageRepository customerSecurityImageRepository, SecurityImageRepository securityImageRepository, EntityManager entityManager, CustomerDetailValidation customerDetailValidation) {
+    public SecurityImagesService(CustomerRepository customerRepository, CustomerSecurityImageRepository customerSecurityImageRepository, SecurityImageRepository securityImageRepository, EntityManager entityManager, CustomerDetailValidation customerDetailValidation,CustomerService customerService) {
         this.customerRepository = customerRepository;
         this.customerSecurityImageRepository = customerSecurityImageRepository;
         this.securityImageRepository = securityImageRepository;
         this.entityManager = entityManager;
         this.customerDetailValidation = customerDetailValidation;
+        this.customerService = customerService;
     }
 
     public CustomerSecurityImagesDto getSecurityImages(String userName) {
@@ -56,11 +61,12 @@ public class SecurityImagesService {
     }
 
     public void getCustomerSecurityImageAndDelete(Customer customer) {
-        CustomerSecurityImages customerSecurityImages1 = customer.getCustomerSecurityImages();
-        customerSecurityImageRepository.delete(customerSecurityImages1);
+        CustomerSecurityImages customerSecurityImages = customer.getCustomerSecurityImages();
+        customerSecurityImageRepository.delete(customerSecurityImages);
         customerSecurityImageRepository.flush();
         entityManager.clear();
     }
+
 
     public SecurityImages findSecurityImageByIdFromRequestBody(CustomerSecurityImageRequestBody customerSecurityImageRequestBody) {
         Optional<SecurityImages> imageResult = securityImageRepository.findById(customerSecurityImageRequestBody.getSecurityImageId());
@@ -74,6 +80,7 @@ public class SecurityImagesService {
     public void validateCustomerSecurityImageAndUpdate(String userName, CustomerSecurityImageRequestBody customerSecurityImageRequestBody) {
         customerDetailValidation.validateCustomerImageCaption(customerSecurityImageRequestBody);
         Customer customer = findCustomerByName(userName);
+        // Customer customer1 = customerService.findCustomer(userName,CUSTOMER_NOT_IN_TABLE,CUSTOMER_NOT_IN_TABLE_DESCRIPTION);
         getCustomerSecurityImageAndDelete(customer);
         SecurityImages securityImageResult = findSecurityImageByIdFromRequestBody(customerSecurityImageRequestBody);
         updateCustomerSecurityImage(securityImageResult, customerSecurityImageRequestBody, customer);
@@ -85,6 +92,14 @@ public class SecurityImagesService {
                 .customer(customer)
                 .securityImages(securityImageResult)
                 .securityImageCaption(securityImageCaption).build();
+//        CustomerSecurityImages customerSecurityImages = getCustomerSecurityImages(customer,securityImageResult,customerSecurityImageRequestBody.getSecurityImageCaption()); 
         customerSecurityImageRepository.save(customerSecurityImages);
+    }
+
+    private CustomerSecurityImages getCustomerSecurityImages(Customer customer, SecurityImages securityImage,String caption){
+       return CustomerSecurityImages.builder().customerImage(new CustomerImage())
+                .customer(customer)
+                .securityImages(securityImage)
+                .securityImageCaption(caption).build();
     }
 }

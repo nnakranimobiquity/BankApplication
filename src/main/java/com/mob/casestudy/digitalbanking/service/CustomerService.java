@@ -69,6 +69,14 @@ public class CustomerService {
         return customerResultOptional.get();
     }
 
+    public Customer findCustomer(String userName,String errorCode, String errorDescription) {
+        Optional<Customer> customerResultOptional = customerRepository.findByUserName(userName);
+        if (!customerResultOptional.isPresent()) {
+            throw new DataNotFoundException(errorCode, errorDescription);
+        }
+        return customerResultOptional.get();
+    }
+
     public Customer validateFieldAndPassToDto(CustomerDto customerDto, Customer customerResult) {
         customerDetailValidation.
                 phoneEmailLanguageValidation(customerDto);
